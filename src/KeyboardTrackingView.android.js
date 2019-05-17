@@ -13,5 +13,6 @@ export default class KeyboardTrackingView extends PureComponent {
   async getNativeProps() {
     return {trackingViewHeight: 0, keyboardHeight: 0, contentTopInset: 0};
   }
+  resetScrollView() {}
   scrollToStart() {}
 }
