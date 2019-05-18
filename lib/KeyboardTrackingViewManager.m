@@ -406,7 +406,7 @@ typedef NS_ENUM(NSUInteger, KeyboardTrackingScrollBehavior) {
             self.initialOffsetIsSet = YES;
         }
 
-        if (_observingInputAccessoryView.keyboardState != KeyboardStateWillHide) {
+        if (_observingInputAccessoryView.keyboardState != KeyboardStateWillHide && _observingInputAccessoryView.keyboardState != KeyboardStateHidden) {
             [self.scrollViewToManage setContentOffset:CGPointMake(self.scrollViewToManage.contentOffset.x, self.initialOffsetY) animated:NO];
         }
 
