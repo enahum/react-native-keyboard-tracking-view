@@ -406,7 +406,9 @@ typedef NS_ENUM(NSUInteger, KeyboardTrackingScrollBehavior) {
             self.initialOffsetIsSet = YES;
         }
 
-        [self.scrollViewToManage setContentOffset:CGPointMake(self.scrollViewToManage.contentOffset.x, self.initialOffsetY) animated:NO];
+        if (_observingInputAccessoryView.keyboardState != KeyboardStateWillHide) {
+            [self.scrollViewToManage setContentOffset:CGPointMake(self.scrollViewToManage.contentOffset.x, self.initialOffsetY) animated:NO];
+        }
 
         UIEdgeInsets insets = self.scrollViewToManage.contentInset;
         CGFloat bottomSafeArea = [self getBottomSafeArea];
