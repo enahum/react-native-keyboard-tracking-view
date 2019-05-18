@@ -53,9 +53,7 @@ typedef NS_ENUM(NSUInteger, KeyboardTrackingScrollBehavior) {
 @property (nonatomic) BOOL scrollToFocusedInput;
 @property (nonatomic) BOOL allowHitsOutsideBounds;
 @property (nonatomic) NSString* scrollViewNativeID;
-
 @property (nonatomic) CGFloat initialOffsetY;
-@property (nonatomic) BOOL initialOffsetIsSet;
 
 @end
 
@@ -74,6 +72,7 @@ typedef NS_ENUM(NSUInteger, KeyboardTrackingScrollBehavior) {
         [self addObserver:self forKeyPath:@"bounds" options:NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew context:NULL];
         _inputViewsMap = [NSMapTable weakToWeakObjectsMapTable];
         _deferedInitializeAccessoryViewsCount = 0;
+        _initialOffsetY = 0;
         _rctScrollViewsArray = [[NSMutableDictionary alloc] init];
 
         _observingInputAccessoryView = [ObservingInputAccessoryView new];
@@ -84,7 +83,6 @@ typedef NS_ENUM(NSUInteger, KeyboardTrackingScrollBehavior) {
         _requiresSameParentToManageScrollView = YES;
 
         _bottomViewHeight = kBottomViewHeight;
-        _initialOffsetIsSet = NO;
 
         self.addBottomView = NO;
         self.scrollToFocusedInput = NO;
@@ -272,7 +270,6 @@ typedef NS_ENUM(NSUInteger, KeyboardTrackingScrollBehavior) {
     [_rctScrollViewsArray removeAllObjects];
     _scrollViewToManage = nil;
     _scrollViewNativeID = scrollViewNativeID;
-    _initialOffsetIsSet = NO;
 
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [self deferedInitializeAccessoryViewsAndHandleInsets];
@@ -401,11 +398,6 @@ typedef NS_ENUM(NSUInteger, KeyboardTrackingScrollBehavior) {
 {
     if(self.scrollViewToManage != nil)
     {
-        if (!self.initialOffsetIsSet) {
-            self.initialOffsetY = self.scrollViewToManage.contentOffset.y;
-            self.initialOffsetIsSet = YES;
-        }
-
         if (_observingInputAccessoryView.keyboardState != KeyboardStateWillHide && _observingInputAccessoryView.keyboardState != KeyboardStateHidden) {
             [self.scrollViewToManage setContentOffset:CGPointMake(self.scrollViewToManage.contentOffset.x, self.initialOffsetY) animated:NO];
         }
@@ -621,7 +613,7 @@ typedef NS_ENUM(NSUInteger, KeyboardTrackingScrollBehavior) {
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
     self.isDraggingScrollView = YES;
-    self.initialOffsetIsSet = NO;
+    self.initialOffsetY = scrollView.contentOffset.y;
 }
 
 - (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset
@@ -632,6 +624,15 @@ typedef NS_ENUM(NSUInteger, KeyboardTrackingScrollBehavior) {
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
 {
     self.isDraggingScrollView = NO;
+    self.initialOffsetY = scrollView.contentOffset.y;
+}
+
+- (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView {
+    self.initialOffsetY = scrollView.contentOffset.y;
+}
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+    self.initialOffsetY = scrollView.contentOffset.y;
 }
 
 - (CGFloat)getKeyboardHeight
